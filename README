@@ -24,7 +24,7 @@ Yaeger, with applications in the artificial life domain.
 
 Laurie J. Heyer, Semyon Kruglyak, and Shibu Yooseph. Exploring expression data: 
 Identification and analysis of coexpressed genes. Genome Research, 9:1106-1115, 
-1999.
+1999. http://dx.doi.org/10.1101/gr.9.11.1106
 
 The R implementation of the original algorithm is part of the CRAN package
 flexclust: http://cran.r-project.org/web/packages/flexclust/index.html
