@@ -1,0 +1,30 @@
+QT_CLUST
+============
+
+This provides an efficient C implementation of the QT Clust algorithm (Heyer,
+Kruglyak, and Yooseph, 1999). This is a partitional clustering algorithm,
+similar to k-means, but has the advantage of not requiring a number of clusters
+to be specified a priori.
+
+The algorithm has two stages:
+1.  Clustering: A candidate cluster is built, starting with each vector in the 
+        population. This is done by adding the next closest agent to the cluster 
+        until the diameter threshold is reached. This is done in parallel for a 
+        significant speed increase.
+2.  Filtering: The largest candidate cluster that does not overlap with a
+        previously selected cluster is selected as a final cluster, until no
+        viable candidates remain. After filtering, unclustered elements are then
+        reclustered within the remaining population until all elements are
+        classified.
+
+The filtering step amortizes the time complexity of the original QT-Clust
+algorithm, while maintaining the quality control advantages of the algorithm.
+These implementations advantages are being prepared for a paper by Murdock and
+Yaeger, with applications in the artificial life domain.
+
+Laurie J. Heyer, Semyon Kruglyak, and Shibu Yooseph. Exploring expression data: 
+Identification and analysis of coexpressed genes. Genome Research, 9:1106-1115, 
+1999.
+
+The R implementation of the original algorithm is part of the CRAN package
+flexclust: http://cran.r-project.org/web/packages/flexclust/index.html
