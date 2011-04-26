@@ -11,7 +11,7 @@
 
 // TODO: Write cluster info to a file (in run/cluster/<std.dev.>)
 // TODO: Add cluster_avg_genome.py functionality in here, write to file (in run/cluster/<std.dev.>)
-// TODO: Implement entropy.c and either read ents.txt or create it (in run/cluster)
+// TODO: Read ents.txt or write results of calc_ents() ents.txt or create it (in run/cluster)
 
 // TODO: Number of genes needs to be determined from the run directory
 #define GENES 2494
@@ -31,7 +31,7 @@ float ents[GENES];
 int G[POPSIZE][GENES];
 float THRESH;
 
-float fweighted_distance(int i, int j) {
+float distance(int i, int j) {
 	int gene, tmp; float sum; sum = 0;
     int* x = G[i]; int* y = G[j];
 	for (gene = 0; gene < GENES; gene++) {
@@ -101,7 +101,7 @@ void build_cluster(int i, int POP) {
 	while (flag) {
 		for (j = 0; j < POP; j++) {
 			if (max_dist[j] < THRESH) {
-				// d = fweighted_distance(G[lastPick], G[j]);
+				// d = distance(G[lastPick], G[j]);
                 d = dists[lastPick][j];
                 if (DEBUG) printf("%d -> %d: %f (cur: %f) \n", lastPick, j, d, max_dist[j]);
 				if (d > max_dist[j]) max_dist[j] = d;
@@ -392,7 +392,7 @@ int main(int argc, char *argv[]) {
         
         #pragma omp parallel for shared(D, i, dists) private(d, j)
 	    for (j = i+1; j < POPSIZE; j++) {
-            d = fweighted_distance(i, j);
+            d = distance(i, j);
             D[j] = d;
             if (DEBUG) printf("%d -> %d: %f\n", i, j, d);
         }
