@@ -306,20 +306,6 @@ float *stddev(int SIZE, int avg[GENES]) {
     return std;
 }
 
-float *stdscore(int genome[GENES], int avg[GENES], float std[GENES]) {
-    int i, j;
-
-    static float score[GENES];
-    for (j=0; j<GENES; j++)
-        score[j] = 0;
-
-    for (j=0; j<GENES; j++)
-        score[j] = (genome[j] - avg[j]) / std[j];
-
-    //print_float_vector(score, GENES);
-    return score;
-}
-
 void calc_ents() {
     int i, j; float p;
     int bins[NUM_BINS];
