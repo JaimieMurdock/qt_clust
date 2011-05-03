@@ -17,7 +17,7 @@
 #define GENES 2494
 // TODO: Get population size from the run directory
 #define POPSIZE 29564
-
+//#define POPSIZE 1000
 #define OFFSET 1 
 
 // Debug flags
@@ -25,17 +25,20 @@
 #define DEBUG 0 
 #define NUM_BINS 16
 
+unsigned char G[POPSIZE][GENES];
+
 float std2[GENES];
 float dists[POPSIZE][POPSIZE];
 float ents[GENES];
-int G[POPSIZE][GENES];
 float THRESH;
 
 float distance(int i, int j) {
-	int gene, tmp; float sum; sum = 0;
-    int* x = G[i]; int* y = G[j];
-	for (gene = 0; gene < GENES; gene++) {
-        tmp = (x[gene] - y[gene]) * (x[gene] - y[gene]);
+	int tmp; float sum = 0;
+    unsigned char* x = G[i]; unsigned char* y = G[j];
+	for (int gene = 0; gene < GENES; gene++) {
+        tmp = (x[gene] > y[gene] ? x[gene] - y[gene] : y[gene] - x[gene]);
+        tmp *= tmp;
+
         if (tmp)
             sum += (ents[gene] * tmp) / std2[gene];
 	}
@@ -127,6 +130,17 @@ void build_cluster(int i, int POP) {
     if (DEBUG) printf("%dC | (len %d)\n", i, cluster_length(i, POP));
 }
 
+int overlap(int c1, int c2, int POP) {
+	int i;
+    bool* clust1 = clust[c1];
+    bool* clust2 = clust[c2];
+	for (i=0; i < POP; i++){
+		//printf("%d || %d & %d\n", i, x[i], y[i]);
+		if (clust[c1][i] && clust[c2][i]) return 1;
+	}	
+	return 0;
+}
+
 int ids[POPSIZE];
 int clusterId = 0;
 
@@ -137,7 +151,7 @@ void pick(int cid, int POP) {
 	for (i = 0; i < POP; i++) {
         if (DEBUG) printf("moving agent %d -> %d\n", i, j);
         if (!bigclust[i]) {
-            memmove(G[j], G[i], GENES*sizeof(int));
+            memmove(G[j], G[i], GENES*sizeof(char));
             memmove(dists[j], dists[i], POP*sizeof(float)); //double check
             ids[j] = ids[i];
             for (k=0; k < POP; k++) {
@@ -171,7 +185,7 @@ int cluster_all(int POP) {
 
     if (DEBUG) printf("beginning cluster %d. genome size: %d\n", clusterId, POP);
    
-    bool candidate[POP];
+    char candidate[POP];
     #pragma omp parallel for shared(candidate,POP) private(i) schedule(dynamic)
 	for (i = 0; i < POP; i++) {
 		build_cluster(i, POP);
@@ -238,17 +252,6 @@ int cluster_all(int POP) {
 
 
 
-int overlap(int c1, int c2, int POP) {
-	int i;
-    bool* clust1 = clust[c1];
-    bool* clust2 = clust[c2];
-	for (i=0; i < POP; i++){
-		//printf("%d || %d & %d\n", i, x[i], y[i]);
-		if (clust[c1][i] && clust[c2][i]) return 1;
-	}	
-	return 0;
-}
-
 void load_genome(int id, int ind) {
     FILE *fp;
     char filename[100];
@@ -264,7 +267,7 @@ void load_genome(int id, int ind) {
     char* s; int i;
     for (i=0;  i< GENES; i++) {
         s = readline(fp);
-        G[ind][i] = atoi(s);
+        G[ind][i] = (unsigned char) atoi(s);
         ids[ind] = id;
     }
 
@@ -306,20 +309,6 @@ float *stddev(int SIZE, int avg[GENES]) {
     return std;
 }
 
-float *stdscore(int genome[GENES], int avg[GENES], float std[GENES]) {
-    int i, j;
-
-    static float score[GENES];
-    for (j=0; j<GENES; j++)
-        score[j] = 0;
-
-    for (j=0; j<GENES; j++)
-        score[j] = (genome[j] - avg[j]) / std[j];
-
-    //print_float_vector(score, GENES);
-    return score;
-}
-
 void calc_ents() {
     int i, j; float p;
     int bins[NUM_BINS];
@@ -345,7 +334,6 @@ void calc_ents() {
         }    
 
         ents[j] = 1-ents[j];
-        ents[j] = 1;
     }
 }
 
@@ -385,9 +373,8 @@ int main(int argc, char *argv[]) {
 
     // calculate distances
     printf("calculating distances...\n");
-    int* a; float d; float* D;
+    float d; float* D;
     for (i = 0; i < POPSIZE; i++) {
-        a = G[i];
         D = dists[i];
         
         #pragma omp parallel for shared(D, i, dists) private(d, j)
